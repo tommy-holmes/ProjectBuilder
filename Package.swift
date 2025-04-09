@@ -4,6 +4,9 @@ import PackageDescription
 
 let package = Package(
     name: "ProjectBuilder",
+    platforms: [
+        .macOS("13.0")
+    ],
     targets: [
         .executableTarget(name: "ProjectBuilder"),
     ]
