@@ -46,16 +46,23 @@ struct ProjectBuilder {
 
 func printUsage() {
     print("""
-    Usage: ProjectBuilder <project-name> [path]
+    Usage: ProjectBuilder <project-name> [path] [options]
     
     Arguments:
       project-name    The name of the project to create
       path           (Optional) The path where the project should be created
                     Defaults to the user's home directory
     
-    Example:
+    Options:
+      --bundle-id-prefix <prefix>  (Optional) Bundle ID prefix (default: com.example)
+      --deployment-target <version> (Optional) iOS deployment target (default: 15.0)
+      --xcode-version <version>    (Optional) Xcode version (default: 16.3)
+    
+    Examples:
       ProjectBuilder MyProject
       ProjectBuilder MyProject ~/Projects
+      ProjectBuilder MyProject --bundle-id-prefix com.mycompany --deployment-target 14.0
+      ProjectBuilder MyProject ~/Projects --xcode-version 15.0
     
     Note: This tool requires xcodegen to be installed.
     Install it using: brew install xcodegen
@@ -70,14 +77,63 @@ if CommandLine.arguments.count < 2 {
 
 let projectName = CommandLine.arguments[1]
 let defaultPath = NSHomeDirectory()
-let path = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : defaultPath
+var path = defaultPath
+var bundleIdPrefix = "com.example"
+var deploymentTarget = "15.0"
+var xcodeVersion = "16.3"
+
+// Parse arguments
+var currentIndex = 2
+while currentIndex < CommandLine.arguments.count {
+    let arg = CommandLine.arguments[currentIndex]
+    
+    switch arg {
+    case "--bundle-id-prefix":
+        guard currentIndex + 1 < CommandLine.arguments.count else {
+            print("❌ Error: Missing value for --bundle-id-prefix")
+            printUsage()
+            exit(1)
+        }
+        bundleIdPrefix = CommandLine.arguments[currentIndex + 1]
+        currentIndex += 2
+        
+    case "--deployment-target":
+        guard currentIndex + 1 < CommandLine.arguments.count else {
+            print("❌ Error: Missing value for --deployment-target")
+            printUsage()
+            exit(1)
+        }
+        deploymentTarget = CommandLine.arguments[currentIndex + 1]
+        currentIndex += 2
+        
+    case "--xcode-version":
+        guard currentIndex + 1 < CommandLine.arguments.count else {
+            print("❌ Error: Missing value for --xcode-version")
+            printUsage()
+            exit(1)
+        }
+        xcodeVersion = CommandLine.arguments[currentIndex + 1]
+        currentIndex += 2
+        
+    default:
+        // If it's not an option, it must be the path
+        if currentIndex == 2 {
+            path = arg
+            currentIndex += 1
+        } else {
+            print("❌ Error: Unknown argument: \(arg)")
+            printUsage()
+            exit(1)
+        }
+    }
+}
 
 let configuration = ProjectConfiguration(
     name: projectName,
     path: path,
-    bundleIdPrefix: "com.example",
-    deploymentTarget: "15.0",
-    xcodeVersion: "15.0"
+    bundleIdPrefix: bundleIdPrefix,
+    deploymentTarget: deploymentTarget,
+    xcodeVersion: xcodeVersion
 )
 
 let builder = ProjectBuilder()
