@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ProjectBuilder}",
+            "name": "Debug ProjectBuilder",
+            "program": "${workspaceFolder:ProjectBuilder}/.build/debug/ProjectBuilder",
+            "preLaunchTask": "swift: Build Debug ProjectBuilder"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ProjectBuilder}",
+            "name": "Release ProjectBuilder",
+            "program": "${workspaceFolder:ProjectBuilder}/.build/release/ProjectBuilder",
+            "preLaunchTask": "swift: Build Release ProjectBuilder"
+        }
+    ]
+}
