@@ -7,15 +7,9 @@ let package = Package(
     platforms: [
         .macOS("13.0")
     ],
-    dependencies: [
-        .package(url: "https://github.com/yonaskolb/XcodeGen.git", .upToNextMajor(from: "2.42.0")),
-    ],
     targets: [
         .executableTarget(
-            name: "ProjectBuilder",
-            dependencies: [
-                .product(name: "XcodeGenKit", package: "XcodeGen"),
-            ]
+            name: "ProjectBuilder"
         ),
     ]
 )
