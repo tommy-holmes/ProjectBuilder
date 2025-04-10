@@ -55,10 +55,8 @@ enum XcodegenError: Error {
     
     var localizedDescription: String {
         switch self {
-        case .notInstalled:
-            return "xcodegen is not installed. Please install it using: brew install xcodegen"
-        case .generationFailed(let output):
-            return "Failed to generate Xcode project: \(output)"
+        case .notInstalled: "xcodegen is not installed. Please install it using: brew install xcodegen"
+        case let .generationFailed(output): "Failed to generate Xcode project: \(output)"
         }
     }
 } 

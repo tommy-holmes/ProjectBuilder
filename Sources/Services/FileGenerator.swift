@@ -102,6 +102,9 @@ struct FileGenerator: FileGenerating {
         <Workspace
            version = "1.0">
            <FileRef
+              location = "group:Packages">
+           </FileRef>
+           <FileRef
               location = "group:Apps/\(appName)/\(appName).xcodeproj">
            </FileRef>
         </Workspace>
@@ -245,6 +248,7 @@ struct FileGenerator: FileGenerating {
         let sourcesPath = (packagesPath as NSString).appendingPathComponent("Sources")
         let testsPath = (packagesPath as NSString).appendingPathComponent("Tests")
         let appFeaturePath = (sourcesPath as NSString).appendingPathComponent("AppFeature")
+        let appFeatureTestsPath = (testsPath as NSString).appendingPathComponent("AppFeatureTests")
         
         print("   Creating Sources directory at: \(sourcesPath)")
         try fileManager.createDirectory(atPath: sourcesPath, withIntermediateDirectories: true)
@@ -255,6 +259,9 @@ struct FileGenerator: FileGenerating {
         print("   Creating AppFeature directory at: \(appFeaturePath)")
         try fileManager.createDirectory(atPath: appFeaturePath, withIntermediateDirectories: true)
         
+        print("   Creating AppFeatureTests directory at: \(appFeatureTestsPath)")
+        try fileManager.createDirectory(atPath: appFeatureTestsPath, withIntermediateDirectories: true)
+        
         print("   Generating AppView.swift...")
         let appViewPath = (appFeaturePath as NSString).appendingPathComponent("AppView.swift")
         print("   Writing AppView.swift to: \(appViewPath)")
@@ -262,7 +269,7 @@ struct FileGenerator: FileGenerating {
         import SwiftUI
 
         public struct AppView: View {
-            public init() {}
+            public init() { }
             
             public var body: some View {
                 Text("Hello, World!")
@@ -270,6 +277,23 @@ struct FileGenerator: FileGenerating {
         }
         """
         try appViewContents.write(toFile: appViewPath, atomically: true, encoding: .utf8)
+        
+        print("   Generating AppFeatureTests.swift...")
+        let appFeatureTestsFilePath = (appFeatureTestsPath as NSString).appendingPathComponent("AppFeatureTests.swift")
+        print("   Writing AppFeatureTests.swift to: \(appFeatureTestsFilePath)")
+        let appFeatureTestsContents = """
+        import Testing
+        @testable import AppFeature
+
+        @Suite("AppFeature tests")
+        struct AppFeatureTests {
+            @Test("Login")
+            func example() async throws {
+                #expect(true)
+            }
+        }
+        """
+        try appFeatureTestsContents.write(toFile: appFeatureTestsFilePath, atomically: true, encoding: .utf8)
     }
     
     private func generatePackageSwift(in packagesPath: String, configuration: ProjectConfiguration) throws {
@@ -282,7 +306,7 @@ struct FileGenerator: FileGenerating {
 
         let package = Package(
             name: "Main",
-            platforms: [.iOS(.v\(configuration.deploymentTarget.replacingOccurrences(of: ".", with: "")))],
+            platforms: [.iOS(.v\(configuration.deploymentTarget.replacingOccurrences(of: ".0", with: "")))],
             products: [
                 .singleTargetLibrary("AppFeature"),
             ],
