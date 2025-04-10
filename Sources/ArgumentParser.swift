@@ -6,7 +6,8 @@ struct ArgumentParser {
         path: String,
         bundleIdPrefix: String,
         deploymentTarget: String,
-        xcodeVersion: String
+        xcodeVersion: String,
+        modules: [Module]
     ) {
         guard arguments.count >= 2 else {
             throw ArgumentError.insufficientArguments
@@ -17,6 +18,7 @@ struct ArgumentParser {
         var bundleIdPrefix = "com.example"
         var deploymentTarget = "15.0"
         var xcodeVersion = "16.3"
+        var modules: [Module] = []
         
         var currentIndex = 2
         while currentIndex < arguments.count {
@@ -44,6 +46,15 @@ struct ArgumentParser {
                 xcodeVersion = arguments[currentIndex + 1]
                 currentIndex += 2
                 
+            case "--module":
+                guard currentIndex + 1 < arguments.count else {
+                    throw ArgumentError.missingValue(for: arg)
+                }
+                let moduleName = arguments[currentIndex + 1]
+                let includeTests = currentIndex + 2 < arguments.count && arguments[currentIndex + 2] == "--include-tests"
+                modules.append(Module(name: moduleName, includeTests: includeTests))
+                currentIndex += includeTests ? 3 : 2
+                
             default:
                 // If it's not an option, it must be the path
                 if currentIndex == 2 {
@@ -60,7 +71,8 @@ struct ArgumentParser {
             path: path,
             bundleIdPrefix: bundleIdPrefix,
             deploymentTarget: deploymentTarget,
-            xcodeVersion: xcodeVersion
+            xcodeVersion: xcodeVersion,
+            modules: modules
         )
     }
 }

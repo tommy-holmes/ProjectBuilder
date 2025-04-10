@@ -33,13 +33,13 @@ struct ProjectConfiguration {
         bundleIdPrefix: String,
         deploymentTarget: String,
         xcodeVersion: String,
-        modules: [Module] = [.appFeature]
+        modules: [Module]
     ) {
         self.name = name
         self.path = path
         self.bundleIdPrefix = bundleIdPrefix
         self.deploymentTarget = deploymentTarget
         self.xcodeVersion = xcodeVersion
-        self.modules = modules
+        self.modules = [.appFeature] + modules
     }
 } 

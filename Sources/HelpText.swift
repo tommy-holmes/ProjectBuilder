@@ -13,12 +13,15 @@ struct HelpText {
       --bundle-id-prefix <prefix>  (Optional) Bundle ID prefix (default: com.example)
       --deployment-target <version> (Optional) iOS deployment target (default: 15.0)
       --xcode-version <version>    (Optional) Xcode version (default: 16.3)
+      --module <name>              (Optional) Add a module to the project
+      --include-tests              (Optional) Include tests for the previous module
     
     Examples:
       ProjectBuilder MyProject
       ProjectBuilder MyProject ~/Projects
       ProjectBuilder MyProject --bundle-id-prefix com.mycompany --deployment-target 14.0
       ProjectBuilder MyProject ~/Projects --xcode-version 15.0
+      ProjectBuilder MyProject --module FeatureA --include-tests --module FeatureB
     
     Note: This tool requires xcodegen to be installed.
     Install it using: brew install xcodegen

@@ -52,7 +52,8 @@ do {
         path, 
         bundleIdPrefix, 
         deploymentTarget, 
-        xcodeVersion
+        xcodeVersion,
+        modules
     ) = try ArgumentParser.parse(CommandLine.arguments)
     
     print("✅ Successfully parsed arguments:")
@@ -61,13 +62,20 @@ do {
     print("   Bundle ID Prefix: \(bundleIdPrefix)")
     print("   Deployment Target: \(deploymentTarget)")
     print("   Xcode Version: \(xcodeVersion)")
+    if !modules.isEmpty {
+        print("   Modules:")
+        for module in modules {
+            print("     - \(module.name)\(module.includeTests ? " (with tests)" : "")")
+        }
+    }
     
     let configuration = ProjectConfiguration(
         name: projectName,
         path: path,
         bundleIdPrefix: bundleIdPrefix,
         deploymentTarget: deploymentTarget,
-        xcodeVersion: xcodeVersion
+        xcodeVersion: xcodeVersion,
+        modules: modules
     )
     
     print("🏗️ Starting project builder...")
