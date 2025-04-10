@@ -32,7 +32,7 @@ struct FileGenerator: FileGenerating {
         print("✅ Created packages directory at: \(packagesPath)")
         
         print("📝 Creating package directories...")
-        try createPackageDirectories(in: packagesPath)
+        try createPackageDirectories(in: packagesPath, configuration: configuration)
         print("✅ Created package directories")
         
         print("📝 Generating workspace...")
@@ -243,12 +243,10 @@ struct FileGenerator: FileGenerating {
         try contentViewContents.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
     }
     
-    private func createPackageDirectories(in packagesPath: String) throws {
+    private func createPackageDirectories(in packagesPath: String, configuration: ProjectConfiguration) throws {
         print("   Creating package source directories...")
         let sourcesPath = (packagesPath as NSString).appendingPathComponent("Sources")
         let testsPath = (packagesPath as NSString).appendingPathComponent("Tests")
-        let appFeaturePath = (sourcesPath as NSString).appendingPathComponent("AppFeature")
-        let appFeatureTestsPath = (testsPath as NSString).appendingPathComponent("AppFeatureTests")
         
         print("   Creating Sources directory at: \(sourcesPath)")
         try fileManager.createDirectory(atPath: sourcesPath, withIntermediateDirectories: true)
@@ -256,19 +254,26 @@ struct FileGenerator: FileGenerating {
         print("   Creating Tests directory at: \(testsPath)")
         try fileManager.createDirectory(atPath: testsPath, withIntermediateDirectories: true)
         
-        print("   Creating AppFeature directory at: \(appFeaturePath)")
-        try fileManager.createDirectory(atPath: appFeaturePath, withIntermediateDirectories: true)
+        // Generate all modules
+        for module in configuration.modules {
+            try generate(module: module.name, includeTests: module.includeTests, in: packagesPath)
+        }
+    }
+    
+    private func generate(module: String, includeTests: Bool, in packagesPath: String) throws {
+        let sourcesPath = (packagesPath as NSString).appendingPathComponent("Sources")
+        let modulePath = (sourcesPath as NSString).appendingPathComponent(module)
         
-        print("   Creating AppFeatureTests directory at: \(appFeatureTestsPath)")
-        try fileManager.createDirectory(atPath: appFeatureTestsPath, withIntermediateDirectories: true)
+        print("   Creating \(module) directory at: \(modulePath)")
+        try fileManager.createDirectory(atPath: modulePath, withIntermediateDirectories: true)
         
-        print("   Generating AppView.swift...")
-        let appViewPath = (appFeaturePath as NSString).appendingPathComponent("AppView.swift")
-        print("   Writing AppView.swift to: \(appViewPath)")
-        let appViewContents = """
+        // Generate the main module file
+        let moduleFilePath = (modulePath as NSString).appendingPathComponent("\(module)View.swift")
+        print("   Writing \(module)View.swift to: \(moduleFilePath)")
+        let moduleContents = """
         import SwiftUI
 
-        public struct AppView: View {
+        public struct \(module)View: View {
             public init() { }
             
             public var body: some View {
@@ -276,29 +281,65 @@ struct FileGenerator: FileGenerating {
             }
         }
         """
-        try appViewContents.write(toFile: appViewPath, atomically: true, encoding: .utf8)
+        try moduleContents.write(toFile: moduleFilePath, atomically: true, encoding: .utf8)
         
-        print("   Generating AppFeatureTests.swift...")
-        let appFeatureTestsFilePath = (appFeatureTestsPath as NSString).appendingPathComponent("AppFeatureTests.swift")
-        print("   Writing AppFeatureTests.swift to: \(appFeatureTestsFilePath)")
-        let appFeatureTestsContents = """
-        import Testing
-        @testable import AppFeature
+        if includeTests {
+            let testsPath = (packagesPath as NSString).appendingPathComponent("Tests")
+            let testModulePath = (testsPath as NSString).appendingPathComponent("\(module)Tests")
+            
+            print("   Creating \(module)Tests directory at: \(testModulePath)")
+            try fileManager.createDirectory(atPath: testModulePath, withIntermediateDirectories: true)
+            
+            // Generate the test file
+            let testFilePath = (testModulePath as NSString).appendingPathComponent("\(module)Tests.swift")
+            print("   Writing \(module)Tests.swift to: \(testFilePath)")
+            let testContents = """
+            import Testing
+            @testable import \(module)
 
-        @Suite("AppFeature tests")
-        struct AppFeatureTests {
-            @Test("Login")
-            func example() async throws {
-                #expect(true)
+            @Suite("\(module) tests")
+            struct \(module)Tests {
+                @Test("Example")
+                func example() async throws {
+                    #expect(true)
+                }
             }
+            """
+            try testContents.write(toFile: testFilePath, atomically: true, encoding: .utf8)
         }
-        """
-        try appFeatureTestsContents.write(toFile: appFeatureTestsFilePath, atomically: true, encoding: .utf8)
     }
     
     private func generatePackageSwift(in packagesPath: String, configuration: ProjectConfiguration) throws {
         print("   Generating Package.swift contents...")
         let packageSwiftPath = (packagesPath as NSString).appendingPathComponent("Package.swift")
+        
+        // Generate products and targets for all modules
+        let products = configuration.modules.map { module in
+            ".singleTargetLibrary(\"\(module.name)\")"
+        }.joined(separator: ",\n            ")
+        
+        // Separate regular targets and test targets
+        let regularTargets = configuration.modules.map { module in
+            ".target(\n                name: \"\(module.name)\"\n            )"
+        }.joined(separator: ",\n            ")
+        
+        let testTargets = configuration.modules
+            .filter { $0.includeTests }
+            .map { module in
+                """
+                .testTarget(
+                    name: "\(module.name)Tests",
+                    dependencies: ["\(module.name)"]
+                )
+                """
+            }
+            .joined(separator: ",\n            ")
+        
+        // Combine targets, ensuring test targets come last
+        let allTargets = [regularTargets, testTargets]
+            .filter { !$0.isEmpty }
+            .joined(separator: ",\n            ")
+        
         let packageSwiftContents = """
         // swift-tools-version: 6.1
 
@@ -308,16 +349,10 @@ struct FileGenerator: FileGenerating {
             name: "Main",
             platforms: [.iOS(.v\(configuration.deploymentTarget.replacingOccurrences(of: ".0", with: "")))],
             products: [
-                .singleTargetLibrary("AppFeature"),
+                \(products)
             ],
             targets: [
-                .target(
-                    name: "AppFeature"
-                ),
-                .testTarget(
-                    name: "AppFeatureTests",
-                    dependencies: ["AppFeature"]
-                ),
+                \(allTargets)
             ]
         )
 
