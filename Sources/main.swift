@@ -46,6 +46,7 @@ struct ProjectBuilder {
 
 // Main execution
 do {
+    print("🔍 Parsing command line arguments...")
     let (
         projectName, 
         path, 
@@ -53,6 +54,13 @@ do {
         deploymentTarget, 
         xcodeVersion
     ) = try ArgumentParser.parse(CommandLine.arguments)
+    
+    print("✅ Successfully parsed arguments:")
+    print("   Project Name: \(projectName)")
+    print("   Path: \(path)")
+    print("   Bundle ID Prefix: \(bundleIdPrefix)")
+    print("   Deployment Target: \(deploymentTarget)")
+    print("   Xcode Version: \(xcodeVersion)")
     
     let configuration = ProjectConfiguration(
         name: projectName,
@@ -62,8 +70,10 @@ do {
         xcodeVersion: xcodeVersion
     )
     
+    print("🏗️ Starting project builder...")
     let builder = ProjectBuilder()
     try builder.buildProject(with: configuration)
+    print("✨ Project generation completed successfully!")
 } catch let error as ArgumentError {
     print("❌ Error: \(error.localizedDescription)")
     HelpText.printUsage()

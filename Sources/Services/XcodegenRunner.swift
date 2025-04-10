@@ -1,4 +1,5 @@
 import Foundation
+import XcodeGenKit
 
 protocol XcodegenRunning {
     func runXcodegen(in directory: String) throws
