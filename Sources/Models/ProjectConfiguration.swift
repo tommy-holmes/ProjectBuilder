@@ -43,3 +43,36 @@ struct ProjectConfiguration {
         self.modules = [.appFeature] + modules
     }
 } 
+
+extension ProjectConfiguration: CustomStringConvertible {
+    var description: String {
+        let projectPath = URL(fileURLWithPath: path)
+            .appendingPathComponent(name)
+            .path
+        var structure = "✅ Created project structure at: \(projectPath)\n"
+        
+        structure += "  ├── Apps\n"
+        structure += "  │   └── \(name)\n"
+        structure += "  │       ├── Sources\n"
+        structure += "  │       │   ├── App.swift\n"
+        structure += "  │       │   ├── ContentView.swift\n"
+        structure += "  │       │   └── Info.plist\n"
+        structure += "  │       ├── project.yml\n"
+        structure += "  │       └── \(name).xcodeproj\n"
+        
+        structure += "  ├── Packages\n"
+        if !modules.isEmpty {
+            for module in modules {
+                structure += "  │   ├── \(module.name)\n"
+                structure += "  │   │   └── Sources\n"
+                if module.includeTests {
+                    structure += "  │   │       └── Tests\n"
+                }
+            }
+        }
+        
+        structure += "  └── Main.xcworkspace"
+        
+        return structure
+    }
+}
