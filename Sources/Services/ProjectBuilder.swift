@@ -34,6 +34,7 @@ The TradeFeature should contain models like `Money` and a view that lets you inp
             ),
             withSystemPrompt: .xcodeSystemPrompt
         )
+        
         let jsonData = boilerplateJson.data(using: .utf8)
         let jsonDecoder = JSONDecoder()
         jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -41,9 +42,13 @@ The TradeFeature should contain models like `Money` and a view that lets you inp
         let boilerplateDict = try jsonDecoder.decode([String: String].self, from: jsonData!)
         print("✅ Generated boilerplate code:\n", boilerplateDict)
         
+        let projectRoot = URL(fileURLWithPath: configuration.path)
+            .appendingPathComponent(configuration.name)
+        
         for file in boilerplateDict {
-            let filePath = URL(fileURLWithPath: configuration.path)
-                .appendingPathComponent(file.key)
+            let filePath = projectRoot.appendingPathComponent(file.key)
+            let directory = filePath.deletingLastPathComponent()
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
             try file.value.write(to: filePath, atomically: true, encoding: .utf8)
             print("✅ Created file at: \(filePath.path)")
         }

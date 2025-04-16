@@ -9,7 +9,10 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "ProjectBuilder"
+            name: "ProjectBuilder",
+            resources: [
+                .process("Resources"),
+            ]
         ),
     ]
 )

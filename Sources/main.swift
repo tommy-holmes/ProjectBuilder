@@ -37,7 +37,7 @@ do {
     
     let builder = ProjectBuilder()
     try builder.buildProjectSkeletion(with: configuration)
-//    try await builder.generateBoilerplate(with: configuration)
+    try await builder.generateBoilerplate(with: configuration)
     
     print("✨ Project generation completed successfully!")
 } catch let error as ArgumentError {
@@ -46,6 +46,5 @@ do {
     exit(1)
 } catch {
     print("❌ Error creating project: \(error.localizedDescription)")
-    print("\nTry using a different path where you have write permissions.")
     exit(1)
 }
