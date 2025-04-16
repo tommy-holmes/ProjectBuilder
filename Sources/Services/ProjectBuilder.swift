@@ -29,7 +29,9 @@ struct ProjectBuilder {
             for: .xcodePrompt(
                 for: configuration.description,
                 supportingInstructions: """
-The CounterFeature should provide a UI that allows the user to increment and decrement an Int that is displayed, with a button to store a favorite. The FavoritesFeature is presented in another tab, and has a list of favorite numbers where the user can scroll throught and delete any. 
+The CounterFeature should provide a UI that allows the user to increment and decrement an Int that is displayed, with a button to store a favorite and remove it is already a favorite. 
+
+The FavoritesFeature is presented in another tab, and has a list of favorite numbers where the user can scroll throught and delete any. 
 
 The AppView in the AppFeature should have a TabView to each of the feature's root views. 
 

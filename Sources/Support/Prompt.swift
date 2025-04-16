@@ -18,7 +18,7 @@ extension Prompt: ExpressibleByStringLiteral {
 
 extension Prompt {
     static let xcodeSystemPrompt: Self = """
-        Update Package.swift with any module's dependencies following specified hierarchy without creating cycles. Implement initial files as per Swift best practices, focusing on making .swift files in a JSON format. Do not touch any auxiliary files like `.xcworkspace` or `.xcodeproj`. 
+        Update Package.swift with any module's dependencies following specified hierarchy without creating cycles. Implement initial files as per Swift best practices, focusing on .swift files in a JSON format. Do not touch any auxiliary files like `.xcworkspace` or `.xcodeproj`. 
         
         Adhere to the hierarchy: Core modules -> Dependencies (Clients) -> Features -> Targets (AppFeature) while managing dependencies.
         
@@ -34,7 +34,7 @@ extension Prompt {
         
         Provide your response in pure JSON. Use the path of each file as the key and the corresponding code as the value. Ensure JSON is properly formatted, without wrapping in code blocks.
         
-        # Examples 
+        # Examples
         
         {
         "Packages/Sources/FeatureA/FeatureANavigationStack.swift": "import SwiftUI\n...\nstruct FeatureANavigationStack: View { ... }",
@@ -49,6 +49,126 @@ extension Prompt {
         - Consider real-world complexity, and adapt code to fit realistic requirements.
         - Write any unit tests in test modules with the new Swift Testing framework.
         - Manage dependencies in `Package.swift` focusing on the specified hierarchy while avoiding dependency cycles.
+        
+        When editing the package.swift, use the following example:
+        
+        ```
+        // swift-tools-version: 6.1
+        
+        import PackageDescription
+        
+        enum Dependencies {
+        static var common: [Target.Dependency] {
+        [
+            "SharedViews",
+            "SharedModels",
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        ]
+        }
+        }
+        
+        let package = Package(
+        name: "Main",
+        platforms: [.iOS(.v18)],
+        products: [
+        .singleTargetLibrary("AppFeature"),
+        ],
+        dependencies: [
+        .package(url: "https://github.com/krzysztofzablocki/Inject.git", .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "11.0.0")),
+        ],
+        targets: [
+        .target(
+            name: "AppFeature",
+            dependencies: Dependencies.common + [
+                "AuthenticationFeature",
+                "ExploreFeature",
+                "ExchangeFeature",
+            ]
+        ),
+        .target(
+            name: "AuthenticationFeature",
+            dependencies: Dependencies.common + [
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+            ]
+        ),
+        .target(
+            name: "OrderHistoryFeature",
+            dependencies: Dependencies.common + [
+                "ExchangeFeature",
+                "Networking",
+            ]
+        ),
+        .target(
+            name: "ExchangeFeature",
+            dependencies: Dependencies.common + [
+                "Networking",
+                "SupportFeature",
+            ]
+        ),
+        .target(
+            name: "AccountFeature",
+            dependencies: [
+                "SupportFeature",
+                "SharedViews",
+            ]
+        ),
+        .target(
+            name: "OnboardingFeature",
+            dependencies: [
+                "SharedViews",
+            ]
+        ),
+        .target(
+            name: "Networking",
+            dependencies: [
+                "SharedModels",
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        .target(
+            name: "SharedViews",
+            dependencies: [
+                "SharedModels",
+                "Inject",
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            ],
+            resources: [
+                .process("Fonts"),
+            ]
+        ),
+        .target(
+            name: "SharedModels"
+        ),
+        .testTarget(
+            name: "AppFeatureTests",
+            dependencies: ["AppFeature"]
+        ),
+        .testTarget(
+            name: "SharedModelsTests",
+            dependencies: [
+                "SharedModels",
+            ]
+        ),
+        .testTarget(
+            name: "NetworkingTests",
+            dependencies: [
+                "Networking",
+            ]
+        ),
+        ]
+        )
+        
+        extension Product {
+        static func singleTargetLibrary(_ name: String) -> Product {
+        .library(name: name, targets: [name])
+        }
+        }
+        ```
         """
     static func xcodePrompt(for appStructure: String, supportingInstructions: String) -> Self {
         Prompt("""
