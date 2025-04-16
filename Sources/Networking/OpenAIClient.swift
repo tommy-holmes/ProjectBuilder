@@ -19,21 +19,40 @@ struct OpenAIClient {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try Self.encoder.encode(OpenAIRequest(
+        let encoded = try Self.encoder.encode(OpenAIRequest(
             model: "gpt-4.1",
             input: [
                 MessageRequest(role: "system",
-                               content: ContentRequest(type: "input_text",
-                                                       text: systemPrompt.description)),
+                               content: [ContentRequest(type: "input_text",
+                                                        text: systemPrompt.description)]),
                 MessageRequest(role: "user",
-                               content: ContentRequest(type: "input_text",
-                                                       text: prompt.description)),
+                               content: [ContentRequest(type: "input_text",
+                                                        text: prompt.description)]),
             ],
             temperature: 1.0,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 10_240,
             topP: 1.0
         ))
+        request.httpBody = encoded
+        request.timeoutInterval = 300
+        
+        // Start a loading spinner in the CLI
+        let spinnerTask = Task {
+            let spinnerSymbols = ["|", "/", "-", "\\"]
+            let startTime = SuspendingClock.now
+            var index = 0
+            while !Task.isCancelled {
+                let elapsed = startTime.duration(to: .now)
+                print("\r\(spinnerSymbols[index % spinnerSymbols.count]) Generating boilerplate: \(elapsed) seconds", terminator: "")
+                fflush(stdout)
+                try? await Task.sleep(for: .seconds(0.2))
+                index += 1
+            }
+        }
+        
         let (data, _) = try await URLSession.shared.data(for: request)
+        spinnerTask.cancel()
+        print("\r", terminator: "")
         
         print("Response Data: \(String(data: data, encoding: .utf8) ?? "")")
         
@@ -89,7 +108,7 @@ private struct OpenAIRequest: Encodable {
 
 private struct MessageRequest: Encodable {
     let role: String
-    let content: ContentRequest
+    let content: [ContentRequest]
 }
 
 private struct ContentRequest: Encodable {

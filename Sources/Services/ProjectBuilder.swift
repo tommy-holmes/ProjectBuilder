@@ -28,8 +28,12 @@ struct ProjectBuilder {
         let boilerplateJson = try await OpenAIClient.fetchResponse(
             for: .xcodePrompt(
                 for: configuration.description,
-                supportingText: """
-The TradeFeature should contain models like `Money` and a view that lets you input a trade. The ExploreFeature should contain models like `Asset` and a view that lists available assets. Just focus on generating the files for the packages not the main app. 
+                supportingInstructions: """
+The CounterFeature should provide a UI that allows the user to increment and decrement an Int that is displayed, with a button to store a favorite. The FavoritesFeature is presented in another tab, and has a list of favorite numbers where the user can scroll throught and delete any. 
+
+The AppView in the AppFeature should have a TabView to each of the feature's root views. 
+
+Make the UI as pretty and user friendly as possible whilst making it accessible, leverging built in SwiftUI features. 
 """
             ),
             withSystemPrompt: .xcodeSystemPrompt

@@ -31,12 +31,14 @@ struct PackageGenerator: ComponentGenerator {
         let modulePath = (pkgSourcesPath as NSString).appendingPathComponent(module.name)
         try fileManager.createDirectory(atPath: modulePath, withIntermediateDirectories: true)
         
+        let viewNamePrefix = module.name.replacing("Feature", with: "")
+        
         // Write the main module file.
-        let moduleFilePath = (modulePath as NSString).appendingPathComponent("\(module.name)View.swift")
+        let moduleFilePath = (modulePath as NSString).appendingPathComponent("\(viewNamePrefix)View.swift")
         let moduleContents = """
         import SwiftUI
         
-        public struct \(module.name)View: View {
+        public struct \(viewNamePrefix)View: View {
             public init() { }
             
             public var body: some View {

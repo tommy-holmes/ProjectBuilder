@@ -42,28 +42,32 @@ struct ProjectConfiguration {
         self.xcodeVersion = xcodeVersion
         self.modules = [.appFeature] + modules
     }
-} 
+}
 
 extension ProjectConfiguration: CustomStringConvertible {
     var description: String {
         var structure = ""
         
         structure += "  ├── Apps\n"
-        structure += "  │   └── \(name)\n"
-        structure += "  │       ├── Sources\n"
-        structure += "  │       │   ├── App.swift\n"
-        structure += "  │       │   ├── ContentView.swift\n"
-        structure += "  │       │   └── Info.plist\n"
-        structure += "  │       ├── project.yml\n"
+        structure += "  │   └── Sources\n"
+        structure += "  │       └── App.swift\n"
+        structure += "  │       ├── ContentView.swift\n"
+        structure += "  │       └── Info.plist\n"
+        structure += "  │   ├── project.yml\n"
         structure += "  │       └── \(name).xcodeproj\n"
         
         structure += "  ├── Packages\n"
+        structure += "  │   ├── Package.swift\n"
         if !modules.isEmpty {
+            structure += "  │   ├── Sources\n"
             for module in modules {
-                structure += "  │   ├── \(module.name)\n"
-                structure += "  │   │   └── Sources\n"
-                if module.includeTests {
-                    structure += "  │   │       └── Tests\n"
+                structure += "  │   │   ├── \(module.name)\n"
+            }
+            let testModules = modules.filter { $0.includeTests }
+            if !testModules.isEmpty {
+                structure += "  │   ├── Tests\n"
+                for module in testModules {
+                    structure += "  │   │   ├── \(module.name)Tests\n"
                 }
             }
         }
