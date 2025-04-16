@@ -12,17 +12,40 @@ struct ProjectBuilder {
         self.xcodegenRunner = xcodegenRunner
     }
     
-    func buildProject(with configuration: ProjectConfiguration) throws {
-        // Generate all project files
+    func buildProjectSkeletion(with configuration: ProjectConfiguration) throws {
         try fileGenerator.generateFiles(for: configuration)
         
-        // Run xcodegen in the app directory
         let appURL = URL(fileURLWithPath: configuration.path)
             .appendingPathComponent(configuration.name)
             .appendingPathComponent("Apps")
             .appendingPathComponent(configuration.name)
-        try xcodegenRunner.runXcodegen(in: appURL.path)
         
-        print(configuration.description)
+        try xcodegenRunner.runXcodegen(in: appURL.path)
+        print("✅ Created project structure at: \(appURL.path)\n", configuration.description)
+    }
+    
+    func generateBoilerplate(with configuration: ProjectConfiguration) async throws {
+        let boilerplateJson = try await OpenAIClient.fetchResponse(
+            for: .xcodePrompt(
+                for: configuration.description,
+                supportingText: """
+The TradeFeature should contain models like `Money` and a view that lets you input a trade. The ExploreFeature should contain models like `Asset` and a view that lists available assets. Just focus on generating the files for the packages not the main app. 
+"""
+            ),
+            withSystemPrompt: .xcodeSystemPrompt
+        )
+        let jsonData = boilerplateJson.data(using: .utf8)
+        let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+        jsonDecoder.dateDecodingStrategy = .iso8601
+        let boilerplateDict = try jsonDecoder.decode([String: String].self, from: jsonData!)
+        print("✅ Generated boilerplate code:\n", boilerplateDict)
+        
+        for file in boilerplateDict {
+            let filePath = URL(fileURLWithPath: configuration.path)
+                .appendingPathComponent(file.key)
+            try file.value.write(to: filePath, atomically: true, encoding: .utf8)
+            print("✅ Created file at: \(filePath.path)")
+        }
     }
 }

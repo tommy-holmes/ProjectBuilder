@@ -21,7 +21,7 @@ struct ProjectConfiguration {
             for: .desktopDirectory,
             in: .userDomainMask
         ).first?.path ?? NSHomeDirectory(),
-        bundleIdPrefix: "com.example",
+        bundleIdPrefix: "com.tomholmes",
         deploymentTarget: "15.0",
         xcodeVersion: "16.3",
         modules: [.appFeature]
@@ -46,10 +46,7 @@ struct ProjectConfiguration {
 
 extension ProjectConfiguration: CustomStringConvertible {
     var description: String {
-        let projectPath = URL(fileURLWithPath: path)
-            .appendingPathComponent(name)
-            .path
-        var structure = "✅ Created project structure at: \(projectPath)\n"
+        var structure = ""
         
         structure += "  ├── Apps\n"
         structure += "  │   └── \(name)\n"

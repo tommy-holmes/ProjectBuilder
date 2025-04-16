@@ -34,8 +34,11 @@ do {
     )
     
     print("🏗️ Starting project builder...")
+    
     let builder = ProjectBuilder()
-    try builder.buildProject(with: configuration)
+    try builder.buildProjectSkeletion(with: configuration)
+//    try await builder.generateBoilerplate(with: configuration)
+    
     print("✨ Project generation completed successfully!")
 } catch let error as ArgumentError {
     print("❌ Error: \(error.localizedDescription)")
