@@ -22,7 +22,7 @@ struct ProjectConfiguration {
             in: .userDomainMask
         ).first?.path ?? NSHomeDirectory(),
         bundleIdPrefix: "com.tomholmes",
-        deploymentTarget: "15.0",
+        deploymentTarget: "17.0",
         xcodeVersion: "16.3",
         modules: [.appFeature]
     )
